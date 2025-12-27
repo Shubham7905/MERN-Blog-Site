@@ -24,7 +24,7 @@ const createBlog = asyncHandler(async (req, res) => {
     const blog = await Blog.create({
         title,
         content,
-        coverImageUrl: coverImage.url,
+        coverImageUrl: coverImage.secure_url,
         author: req.user._id
     });
 
