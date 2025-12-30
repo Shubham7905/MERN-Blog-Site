@@ -84,7 +84,6 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
 
 # Gatsby files
 .cache/
@@ -93,7 +92,6 @@ dist
 # public
 
 # vuepress build output
-.vuepress/dist
 
 # Serverless directories
 .serverless/
@@ -118,3 +116,4 @@ dist
 .pnp.*
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node
+.vercel

@@ -6,6 +6,11 @@ import { ApiResponse } from "../utils/ApiResonse.js"
 
 //Create a new blog
 const createBlog = asyncHandler(async (req, res) => {
+
+    if (!req.user) {
+        throw new ApiError(401, "Authentication required");
+    }
+
     const { title, content } = req.body
 
     if (!title || !content) {
@@ -106,6 +111,11 @@ const getBlogById = asyncHandler(async (req, res) => {
 
 //Like or unlike a blog
 const likeBlog = asyncHandler(async (req, res) => {
+
+    if (!req.user) {
+        throw new ApiError(401, "Authentication required");
+    }
+
     const { blogId } = req.params;
     const userId = req.user._id;
 
@@ -132,6 +142,10 @@ const likeBlog = asyncHandler(async (req, res) => {
 
 //Add comments
 const addComment = asyncHandler(async (req, res) => {
+    if (!req.user) {
+        throw new ApiError(401, "Authentication required");
+    }
+
     const { blogId } = req.params;
     const { text } = req.body;
 
@@ -155,6 +169,10 @@ const addComment = asyncHandler(async (req, res) => {
 
 //Update a blog
 const updateBlog = asyncHandler(async (req, res) => {
+    if (!req.user) {
+        throw new ApiError(401, "Authentication required");
+    }
+
     const { blogId } = req.params;
     const { title, content } = req.body;
 
@@ -166,7 +184,7 @@ const updateBlog = asyncHandler(async (req, res) => {
 
     // Check if the current user is the owner
     if (blog.author.toString() !== req.user._id.toString()) {
-        throw new ApiError(403, "You are not authorized to edit this blog");
+        throw new ApiError(403, "Not authorized to edit this blog");
     }
 
     // Update fields if provided
@@ -177,7 +195,7 @@ const updateBlog = asyncHandler(async (req, res) => {
     const coverImagePath = req.file?.path;
     if (coverImagePath) {
         const coverImage = await uploadOnCloudinary(coverImagePath);
-        blog.coverImageUrl = coverImage.url;
+        blog.coverImageUrl = coverImage.secure_url;
     }
 
     await blog.save();

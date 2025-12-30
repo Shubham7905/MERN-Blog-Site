@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResonse.js"
 import jwt from "jsonwebtoken"
+import { cookieOptions } from "../utils/cookieOptions.js"
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -47,8 +48,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const user = await User.create({
         fullName,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",
+        avatar: avatar.secure_url,
+        coverImage: coverImage?.secure_url || "",
         email,
         password,
         username: username.toLowerCase(),
@@ -56,18 +57,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
 
-    const options = {
-        httpOnly: true,
-        secure: true,
-        sameSite: "None",
-    };
-
     const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
     return res
         .status(201)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .cookie("refreshToken", refreshToken, cookieOptions)
         .json(
             new ApiResponse(
                 201,
@@ -103,16 +98,10 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
-    const options = {
-        httpOnly: true,
-        secure: true,
-        sameSite: "None"
-    }
-
     return res
         .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .cookie("refreshToken", refreshToken, cookieOptions)
         .json(
             new ApiResponse(
                 200,
@@ -126,34 +115,21 @@ const loginUser = asyncHandler(async (req, res) => {
 })
 
 const logoutUser = asyncHandler(async (req, res) => {
-    await User.findByIdAndUpdate(
-        req.user._id,
-        {
-            $set: {
-                refreshToken: undefined
-            }
-        },
-        {
-            new: true
-        }
-    )
-
-    const options = {
-        httpOnly: true,
-        secure: true,
-        sameSite: "None"
+    if (req.user?._id) {
+        await User.findByIdAndUpdate(
+            req.user._id,
+            { $unset: { refreshToken: 1 } }
+        );
     }
 
     return res
         .status(200)
-        .clearCookie("accessToken", options)
-        .clearCookie("refreshToken", options)
-        .json(new ApiResponse(200, {}, "User logged out successfully!!!"))
-
-})
+        .clearCookie("accessToken", cookieOptions)
+        .clearCookie("refreshToken", cookieOptions)
+        .json(new ApiResponse(200, {}, "User logged out successfully"));
+});
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-    // req.user is set by verifyJWT middleware
     if (!req.user) {
         return res.status(200).json({
             status: "success",
@@ -194,17 +170,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Refresh token is expired or used")
         }
 
-        const options = {
-            httpOnly: true,
-            secure: true,
-            sameSite: "None"
-        }
-
         const accessToken = user.generateAccessToken();
 
         return res
             .status(200)
-            .cookie("accessToken", accessToken, options)
+            .cookie("accessToken", accessToken, cookieOptions)
             .json(
                 new ApiResponse(
                     200,
