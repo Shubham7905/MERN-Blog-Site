@@ -2,7 +2,7 @@ import API from "./axios";
 
 export const fetchBlogs = () => API.get("/blogs");
 
-export const fetchBlogById = (id) => API.get(`blogs/${id}`);
+export const fetchBlogById = (id) => API.get(`/blogs/${id}`);
 
 export const likeBlog = (id) => API.post(`/blogs/${id}/like`);
 

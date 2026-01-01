@@ -12,7 +12,7 @@ export default function App() {
 
   useEffect(() => {
     dispatch(loadUserThunk());
-  }, [dispatch]);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("theme", theme);
